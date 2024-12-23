@@ -26,10 +26,22 @@ export async function getSales(
     const url = `${getPublicAPIUrl(chain)}/events?${buildQueryParams({ page, size, name, sort, order, withNft, ...filters })}`
     console.log("getSales", url)
 
-    const response = await axios.get(url)
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    const response = await axios.get(url, {
+      timeout: 10000,
+      headers: {
+        'User-Agent': 'TelegramSalesBot/1.0'
+      }
+    })
     return response.data
   }
   catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 429) {
+      console.error('Rate limited, waiting 60 seconds...')
+      await new Promise(resolve => setTimeout(resolve, 60000))
+      return getSales(filters, page, size, sort, order, chain)
+    }
     console.error(`Fetch Error: ${error} `)
     return []
   }

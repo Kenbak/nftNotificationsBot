@@ -91,9 +91,9 @@ export class TelegramSalesBot extends WorkerBase {
 🎉 *HUE Buy!* 🎉
 
 💰 Spent: *$${formatNumber(saleAmountUsd)}* (${saleAmountEth.toFixed(4)} ETH)
-🖼️ Got: *${nftData?.name || 'Unknown'}*
+🖼️ Got: *Hue #${sale.tokenId || 'N/A'}*
 🧑‍🚀 Buyer: \`${sale.to?.slice(0, 6)}...${sale.to?.slice(-4) || 'Unknown'}\`
-🔢 Hue #${sale.tokenId || 'N/A'}
+
 
 📊 Market Cap: *$${formatNumber(marketCap)}*
 🏷️ Floor Price: *$${formatNumber(floorPrice * ethPrice)}* (${floorPrice.toFixed(4)} ETH)

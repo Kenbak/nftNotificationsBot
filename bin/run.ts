@@ -33,6 +33,6 @@ bot.getMe().then((botInfo) => {
 
 // console.log('Bot is running. Send a message to the bot to get the chat ID.');
 
-const CHECK_INTERVAL = 5 * 1000 // 5 seconds
+const CHECK_INTERVAL = 60 * 1000 // minute
 const salesBot = new TelegramSalesBot(CHECK_INTERVAL, networkName, collectionAddress, chatId, bot)
 salesBot.run()
