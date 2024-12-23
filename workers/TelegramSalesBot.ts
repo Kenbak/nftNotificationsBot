@@ -16,11 +16,12 @@ export class TelegramSalesBot extends WorkerBase {
     interval: number,
     private network: AllChain,
     private collectionAddress: string,
-    private chatId: string
+    private chatId: string,
+    existingBot?: TelegramBot
   ) {
     super(interval, "TelegramSalesBot")
     const config = new FunctionalityConfig()
-    this.bot = new TelegramBot(config.telegramBotToken, { polling: false })
+    this.bot = existingBot || new TelegramBot(config.telegramBotToken, { polling: false })
     this.lastCheckTime = Math.floor(Date.now() / 1000)
   }
 
