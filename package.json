@@ -4,6 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
+    "start": "ts-node bin/run.ts",
     "lint": "eslint .",
     "lint-fix": "eslint --fix ."
   },

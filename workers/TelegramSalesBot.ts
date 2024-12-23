@@ -2,14 +2,15 @@ import { WorkerBase } from "./WorkerBase"
 import { AllChain, getSales } from "../functions"
 import TelegramBot from "node-telegram-bot-api"
 import { FunctionalityConfig } from "../config/FunctionalityConfig"
-import sharp from 'sharp';
-import axios from 'axios';
+import axios from 'axios'
+import sharp from 'sharp'
 
-const FETCH_SALES_NUMBER = 10
+
 const ZKMARKETS_API_URL = 'https://api.zkmarkets.com/zksync-era/collections';
 
 export class TelegramSalesBot extends WorkerBase {
   private bot: TelegramBot
+  private lastCheckTime: number
 
   constructor(
     interval: number,
@@ -20,49 +21,29 @@ export class TelegramSalesBot extends WorkerBase {
     super(interval, "TelegramSalesBot")
     const config = new FunctionalityConfig()
     this.bot = new TelegramBot(config.telegramBotToken, { polling: false })
+    this.lastCheckTime = Math.floor(Date.now() / 1000)
   }
 
   async iteration() {
-    const threeDaysAgo = Math.floor(Date.now() / 1000) - 3 * 24 * 60 * 60 // Three days ago
-
-    this.logger.log(`Checking for sales in the last 3 days`)
+    const currentTime = Math.floor(Date.now() / 1000)
 
     const lastSales = await getSales({
       collectionAddress: this.collectionAddress,
-      timeFrom: threeDaysAgo.toString(),
-    }, 0, FETCH_SALES_NUMBER, "createdAt", "DESC", this.network)
+      timeFrom: this.lastCheckTime.toString(),
+    }, 0, 10, "createdAt", "DESC", this.network)
 
-    this.logger.log(`Found ${lastSales.length} sales`)
+    // Update check time only after successful fetch
+    this.lastCheckTime = currentTime
 
-    if (lastSales.length === 0) {
-      this.logger.log("No new sales found in this iteration")
-      await this.bot.sendMessage(this.chatId, "No new sales found in the last 3 days.")
-      return
-    }
+    if (lastSales.length > 0) {
+      this.logger.log(`Found ${lastSales.length} new sales`)
+      const collectionData = await this.getCollectionData()
 
-    // Fetch collection data once for all sales
-    const collectionData = await this.getCollectionData();
-
-    for (const sale of lastSales) {
-      try {
+      // Process sales in chronological order
+      for (const sale of lastSales.reverse()) {
         await this.sendSaleNotification(sale, collectionData)
-        console.log("NEW SALE:", JSON.stringify(sale, null, 2))
-        this.logger.log(`Sent notification for sale of ${sale.nft?.name || 'Unknown NFT'}`)
-
-        // Add a delay between messages to avoid hitting rate limits
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      } catch (error) {
-        this.logger.error(`Failed to send notification for sale: ${error}`)
       }
     }
-
-    // Send a summary message
-    const summaryMessage = `
-📊 *Sales Summary (Last 3 Days)*
-Total Sales: ${lastSales.length}
-Total Volume: ${this.calculateTotalVolume(lastSales)} ETH
-    `;
-    await this.bot.sendMessage(this.chatId, summaryMessage, { parse_mode: 'Markdown' });
   }
 
   private calculateTotalVolume(sales: any[]): string {
@@ -110,7 +91,7 @@ Total Volume: ${this.calculateTotalVolume(lastSales)} ETH
 
 💰 Spent: *$${formatNumber(saleAmountUsd)}* (${saleAmountEth.toFixed(4)} ETH)
 🖼️ Got: *${nftData?.name || 'Unknown'}*
-🧑‍🚀 Buyer: \`${sale.from?.slice(0, 6)}...${sale.from?.slice(-4) || 'Unknown'}\`
+🧑‍🚀 Buyer: \`${sale.to?.slice(0, 6)}...${sale.to?.slice(-4) || 'Unknown'}\`
 🔢 Hue #${sale.tokenId || 'N/A'}
 
 📊 Market Cap: *$${formatNumber(marketCap)}*

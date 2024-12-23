@@ -25,14 +25,14 @@ bot.getMe().then((botInfo) => {
   console.log('Bot Username:', botInfo.username);
 });
 
-bot.on('message', (msg) => {
-  const chatId = msg.chat.id;
-  console.log('Received a message from chat ID:', chatId);
-  bot.sendMessage(chatId, 'I received your message. This chat ID is: ' + chatId);
-});
+// bot.on('message', (msg) => {
+//   const chatId = msg.chat.id;
+//   console.log('Received a message from chat ID:', chatId);
+//   bot.sendMessage(chatId, 'I received your message. This chat ID is: ' + chatId);
+// });
 
-console.log('Bot is running. Send a message to the bot to get the chat ID.');
+// console.log('Bot is running. Send a message to the bot to get the chat ID.');
 
-const loopSeconds = 60
-const salesBot = new TelegramSalesBot(1000 * loopSeconds, networkName, collectionAddress, chatId)
+const CHECK_INTERVAL = 5 * 1000 // 5 seconds
+const salesBot = new TelegramSalesBot(CHECK_INTERVAL, networkName, collectionAddress, chatId)
 salesBot.run()

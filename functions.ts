@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 const knownChains = [
   "zksync-era",
   "zksync-era-testnet",
@@ -21,14 +23,11 @@ export async function getSales(
     order = order || "DESC"
     const name = ["ItemBought", "OrderFulfilled"]
     const withNft = "true"
-    console.log("getSales", `${getPublicAPIUrl(chain)}/events?${buildQueryParams({ page, size, name, sort, order, withNft, ...filters })}`)
-    const response = await fetch(
-      `${getPublicAPIUrl(chain)}/events?${buildQueryParams({ page, size, name, sort, order, withNft, ...filters })}`,
-    )
-    if (!response.ok) {
-      throw new Error("Network response was not ok")
-    }
-    return await response.json() as any[]
+    const url = `${getPublicAPIUrl(chain)}/events?${buildQueryParams({ page, size, name, sort, order, withNft, ...filters })}`
+    console.log("getSales", url)
+
+    const response = await axios.get(url)
+    return response.data
   }
   catch (error) {
     console.error(`Fetch Error: ${error} `)
